@@ -233,6 +233,7 @@ define network::interface (
   $primary_reselect = undef,
 
   # For bridging
+  $bridge          = undef,
   $bridge_ports    = [ ],
   $bridge_stp      = undef,
   $bridge_fd       = undef,
@@ -261,10 +262,8 @@ define network::interface (
   $slave           = undef,
   $bonding_master  = undef,
   $bonding_opts    = undef,
-  $vlan            = undef,
   $vlan_name_type  = undef,
   $physdev         = undef,
-  $bridge          = undef,
   $arpcheck        = undef,
   $zone            = undef,
   $arp             = undef,
@@ -305,6 +304,7 @@ define network::interface (
   # also used for Suse bridging: $bridge, $bridge_ports, $bridge_stp
 
   # For vlan
+  $vlan            = undef,
   $etherdevice     = undef,
   # also used for Suse vlan: $vlan
 
@@ -430,6 +430,16 @@ define network::interface (
             ensure => 'present',
           }
         }
+      }
+
+      if $bridge {
+        if !defined(Package['bridge-utils']) {
+          package { 'bridge-utils':
+            ensure => 'present',
+          }
+        }
+        Package['bridge-utils'] ->
+        Exec[${::network::service_restart_exec}]
       }
 
       if $network::config_file_per_interface {
